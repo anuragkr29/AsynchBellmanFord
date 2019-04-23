@@ -22,6 +22,7 @@ public class Main {
         int rootUID = fileReadObj.getRoot();
         int[] UIDs = fileReadObj.getUIDs();
         int numCores = Runtime.getRuntime().availableProcessors();
+        System.out.println("Hello");
         Round r = new Round(numberOfProcesses);
         ExecutorService threadPool = Executors.newFixedThreadPool(numberOfProcesses);
         HashMap<Integer,Process> processMap = new HashMap<>(2*numberOfProcesses);
@@ -37,21 +38,23 @@ public class Main {
         Scanner s = new Scanner(System.in);
         int round = 0;
         Process root = processMap.get(rootUID);
-        while (!root.isProcessCompleted()) {
+        Synchronizer synch = new Synchronizer(numberOfProcesses,root);
+        synch.start();
+        while (!synch.done) {
             try {
-                if (Round.threadCount.get() == 0) {
-                    round++;
-                    if (round==1){
-                        Message m = new Message();
-                        m.setRoot(true);
-                        m.setRoundNum(1);
-                        m.setLevel(1);
-                        root.putMessage(m);
-                    }
-                    Thread.currentThread().sleep(1000);
-                    r.nextRound(numberOfProcesses,round);
-                    System.out.println("Started round : " + (round));
-                }
+//                if (Round.threadCount.get() == 0) {
+//                    round++;
+//                    if (round==1){
+//                        Message m = new Message();
+//                        m.setRoot(true);
+//                        m.setRoundNum(1);
+//                        m.setLevel(1);
+//                        root.putMessage(m);
+//                    }
+//                    Thread.currentThread().sleep(1000);
+//                    r.nextRound(numberOfProcesses,round);
+//                    System.out.println("Started round : " + (round));
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
