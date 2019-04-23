@@ -14,19 +14,6 @@ class Round {
     public static AtomicIntegerArray round ;
     public static AtomicInteger globalRoundNumber = new AtomicInteger(0);
     public static AtomicInteger threadCount= new AtomicInteger(0) ;
-    private static AtomicBoolean stopAllThreads = new AtomicBoolean(false);
-
-    /**
-     * function to stop all threads
-     * @param state boolean value : true sets the stopAllthreads
-     */
-    public void setStopAllThreads(boolean state) {
-        this.stopAllThreads.set(state);
-    }
-
-    public static boolean getStopAllThreads(){
-        return stopAllThreads.get();
-    }
 
     public Round(int number) {
         round = new AtomicIntegerArray(number);
@@ -69,3 +56,4 @@ class Round {
         return globalRoundNumber.get();
     }
 }
+

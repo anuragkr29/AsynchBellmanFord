@@ -1,9 +1,7 @@
-/**
- * @author Anurag Kumar
- */
+import sun.jvm.hotspot.utilities.Assert;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,55 +10,49 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     public static void main(String[] args) {
-
         Utils utility = new Utils();
-        Scanner filename = new Scanner(System.in);
+        Scanner s = new Scanner(System.in);
         System.out.println("Enter the input file path : ");
-        ReadFile fileReadObj = new ReadFile(filename.nextLine());
-        ArrayList<Integer>[] connectionMatrix = fileReadObj.getConnectionMatrix();
+        ReadFile fileReadObj = new ReadFile(s.nextLine());
         int numberOfProcesses = fileReadObj.getNumberOfProcesses();
+        ArrayList<Integer>[] connectionMatrix = fileReadObj.getConnectionMatrix();
+        assert numberOfProcesses == connectionMatrix.length : "Incorrect Matrix";
+        int numberOfRounds = numberOfProcesses;
         int rootUID = fileReadObj.getRoot();
         int[] UIDs = fileReadObj.getUIDs();
-        int numCores = Runtime.getRuntime().availableProcessors();
+        System.out.println("--------- Input File read ----------");
+        System.out.println(" Number of Processes : " + numberOfProcesses);
+        System.out.println("------------------------------------");
         Round r = new Round(numberOfProcesses);
         ExecutorService threadPool = Executors.newFixedThreadPool(numberOfProcesses);
-        HashMap<Integer,Process> processMap = new HashMap<>(2*numberOfProcesses);
-        // submit jobs to be executing by the pool
+        Process processMap[] = new Process[numberOfProcesses];
         for (int i = 0; i < numberOfProcesses; i++) {
-            Process p = new Process(UIDs[i], false , utility.getNeighbors(i,connectionMatrix[i]),i, rootUID);
-            processMap.put(UIDs[i],p);
+            Process p = new Process(i, numberOfProcesses,utility.getNeighbors(i,connectionMatrix[i]),Integer.MAX_VALUE, UIDs[i]);
+            processMap[i] = p;
         }
-        Communication channel = new Communication(processMap, UIDs);
+        Communication channel = new Communication(processMap, numberOfProcesses);
+        Process root = processMap[rootUID];
+        root.setDist(0);
         for (int i = 0; i < numberOfProcesses; i++) {
-                threadPool.submit(processMap.get(UIDs[i]));
+            threadPool.submit(processMap[i]);
         }
-        Scanner s = new Scanner(System.in);
+
         int round = 0;
-        Process root = processMap.get(rootUID);
-        while (!root.isProcessCompleted()) {
+        while (round <= numberOfRounds-1) {
             try {
                 if (Round.threadCount.get() == 0) {
                     round++;
-                    if (round==1){
-                        Message m = new Message();
-                        m.setRoot(true);
-                        m.setRoundNum(1);
-                        m.setLevel(1);
-                        root.putMessage(m);
-                    }
                     Thread.currentThread().sleep(1000);
-                    r.nextRound(numberOfProcesses,round);
-                    System.out.println("Started round : " + (round));
+                    r.nextRound(numberOfProcesses, round);
+                    System.out.println("Started round : " + (round+1));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-//            inp = s.nextInt();
         }
-        r.setStopAllThreads(true);
+
         System.out.println("All rounds finishied . Closing Thread pool");
         threadPool.shutdown();
-//wait for the threads to finish if necessary
         try {
             threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             System.out.println("Thread pool closed");
@@ -69,3 +61,7 @@ public class Main {
         }
     }
 }
+
+
+
+
