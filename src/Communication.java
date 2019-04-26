@@ -7,8 +7,6 @@ public class Communication {
     private static Process[] processMap;
     private static int messageDropNum;
     private static int numberOfProcesses;
-    private static AtomicIntegerArray messageCounter;
-    private static AtomicInteger messageNum = new AtomicInteger(0);
     
     
     public Communication(Process[] processMap, int numberOfProcesses)
@@ -21,31 +19,12 @@ public class Communication {
 
 
 
-    public static synchronized void sendMessage(Message m,int senderIndex){
-
-        int globalRoundNum = Round.getGlobalRoundNumber();
-        if(globalRoundNum == 0)
-        {
-            messageNum.set(messageCounter.get(senderIndex) + (((numberOfProcesses-1))*senderIndex) + (globalRoundNum*(numberOfProcesses-1)*(numberOfProcesses)));
-        }
-        else
-        {
-            messageNum.set(messageCounter.get(senderIndex) + ((numberOfProcesses-1)*(numberOfProcesses-1)));
-        }
-        messageCounter.set(senderIndex,messageNum.get());
-        int i=0;
-        for(i=0;i<numberOfProcesses;i++)
-        {
-            if(i == senderIndex)
-                continue;
-            else if(messageNum.get()%messageDropNum != 0) {
-                Process receiver = processMap[i];
-                send(m, receiver);
-            }
-            else
-                System.out.println("Dropping Message Number : " + messageNum.get());
-            messageCounter.getAndIncrement(senderIndex);
-            messageNum.set(messageCounter.get(senderIndex));
+    public static synchronized void sendMessage(Message m){
+        int receiverIndex = (int) m.getTo_UID();
+        Process neighbor = processMap[receiverIndex];
+        System.out.println("sending message from " + m.getFrom_UID() + " to : " + m.getTo_UID() + " type : " + m.getType() + " dist : " + m.getCurrentDist());
+        if(neighbor != null){
+            send(m, neighbor);
         }
     }
 

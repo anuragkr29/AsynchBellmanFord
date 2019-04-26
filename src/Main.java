@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Utils utility = new Utils();
         Scanner s = new Scanner(System.in);
         System.out.println("Enter the input file path : ");
@@ -17,17 +17,18 @@ public class Main {
         int numberOfProcesses = fileReadObj.getNumberOfProcesses();
         ArrayList<Integer>[] connectionMatrix = fileReadObj.getConnectionMatrix();
         assert numberOfProcesses == connectionMatrix.length : "Incorrect Matrix";
-        int numberOfRounds = numberOfProcesses;
+        int numberOfRounds = 15;
+        Round r = new Round(numberOfProcesses);
         int rootUID = fileReadObj.getRoot();
         int[] UIDs = fileReadObj.getUIDs();
+        boolean complete = false;
         System.out.println("--------- Input File read ----------");
         System.out.println(" Number of Processes : " + numberOfProcesses);
         System.out.println("------------------------------------");
-        Round r = new Round(numberOfProcesses);
         ExecutorService threadPool = Executors.newFixedThreadPool(numberOfProcesses);
         Process processMap[] = new Process[numberOfProcesses];
         for (int i = 0; i < numberOfProcesses; i++) {
-            Process p = new Process(i, numberOfProcesses,utility.getNeighbors(i,connectionMatrix[i]),Integer.MAX_VALUE, UIDs[i]);
+            Process p = new Process(UIDs[i], numberOfProcesses,utility.getNeighbors(i,connectionMatrix[i]),Integer.MAX_VALUE, rootUID);
             processMap[i] = p;
         }
         Communication channel = new Communication(processMap, numberOfProcesses);
@@ -36,21 +37,8 @@ public class Main {
         for (int i = 0; i < numberOfProcesses; i++) {
             threadPool.submit(processMap[i]);
         }
-
-        int round = 0;
-        while (round <= numberOfRounds-1) {
-            try {
-                if (Round.threadCount.get() == 0) {
-                    round++;
-                    Thread.currentThread().sleep(1000);
-                    r.nextRound(numberOfProcesses, round);
-                    System.out.println("Started round : " + (round+1));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+        Synchronizer asynch = new Synchronizer(numberOfProcesses, root, r);
+        asynch.runBellmanFord();
         System.out.println("All rounds finishied . Closing Thread pool");
         threadPool.shutdown();
         try {
