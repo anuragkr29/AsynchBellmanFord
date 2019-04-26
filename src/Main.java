@@ -49,6 +49,7 @@ public class Main {
 
         // Run the Bellman Ford algorithm from the synchroizer
         asynch.runBellmanFord();
+        System.out.println("*****************  Convergecast Complete  *******************");
         System.out.println("All rounds finishied . Closing Thread pool");
 
         // close the threadpool once the convergecast is complete

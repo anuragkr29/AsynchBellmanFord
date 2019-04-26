@@ -181,7 +181,6 @@ class Process implements Runnable {
                             this.checkDone();
                             break;
                         case Dummy:
-                            System.out.println("Dummy");
                             break;
                     }
                 }
@@ -235,7 +234,7 @@ class Process implements Runnable {
                         if (!this.distChanged){
                             for (Edge e : neighbors) {
                                 if(!this.receiversInCurrentRound.contains(e.getUID())) {
-                                    enqueueMessage(e.getUID(), dist, index, Message.Type.Dummy);
+                                    enqueueMessage(e.getUID(), -2, index, Message.Type.Dummy);
                                 }
                             }
                             this.receiversInCurrentRound.clear();
@@ -262,7 +261,7 @@ class Process implements Runnable {
         Random rand = new Random();
         this.receiversInCurrentRound.add(receiverUID);
         int randRoundNum = rand.nextInt(14) + 1;
-        System.out.println("Putting in sendQ for thread : " + receiverUID + " random num : " + randRoundNum + " from : " + this.index + " type :" + type);
+        System.out.println("Putting in sendQ for thread : " + receiverUID + " delay time Unit : " + randRoundNum + " from : " + this.index + " type :" + type);
         Message<Integer> toSend = new Message<>(dist, index, receiverUID, randRoundNum, type);
         Thread.sleep(1000);
         this.sendQ.add(toSend);
@@ -274,7 +273,7 @@ class Process implements Runnable {
         Random rand = new Random();
         this.receiversInCurrentRound.add(receiverUID);
         int randRoundNum = rand.nextInt(14) + 1;
-        System.out.println("Putting in sendQ for oldparent: " + receiverUID + " random num : " + randRoundNum + " from : " + this.index + " type :" + type);
+        System.out.println("Putting in sendQ for oldparent: " + receiverUID + " delay time Unit : " + randRoundNum + " from : " + this.index + " type :" + type);
         Message<Integer> toSend = new Message<>(dist, index, receiverUID, randRoundNum, type, oldParent);
         Thread.sleep(1000);
         this.sendQ.add(toSend);
