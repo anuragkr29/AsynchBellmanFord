@@ -1,9 +1,20 @@
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * @author Anurag Kumar
+ */
 
+/**
+ * This class defines the components required in a message
+ */
 public class Message<T> {
 
-
+    /**
+     * currentDist - distance of the sender node to the receiver node
+     * from_UID - the sender's UID
+     * to_UID - the receiver UID
+     * roundNum - the round number in which the message will be sent (used as time unit for delays)
+     * oldParentId - optional - sent only when a node changes its parent if it gets a better distance
+     * type - the type of message - based on the enum Type (Ack, NAck, Dummy, Relax)
+     */
     private T currentDist;
     private T from_UID;
     private T to_UID;
@@ -20,40 +31,20 @@ public class Message<T> {
         return type;
     }
 
-    public void setType(Type type) {
-        this.type = type;
-    }
-
     public T getCurrentDist() {
         return currentDist;
-    }
-
-    public void setCurrentDist(T currentDist) {
-        this.currentDist = currentDist;
     }
 
     public T getFrom_UID() {
         return from_UID;
     }
 
-    public void setFrom_UID(T from_UID) {
-        this.from_UID = from_UID;
-    }
-
     public T getTo_UID() {
         return to_UID;
     }
 
-    public void setTo_UID(T to_UID) {
-        this.to_UID = to_UID;
-    }
-
     public T getRoundNum() {
         return roundNum;
-    }
-
-    public void setRoundNum(T roundNum) {
-        this.roundNum = roundNum;
     }
 
     public Message(T dist, T fromUID, T toUID, T roundNum, Type type) {

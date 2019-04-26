@@ -1,5 +1,19 @@
+/**
+ * @author Anurag Kumar
+ */
+
+/**
+ * This class acts as a synchronizer on top of the asynchronous network and ensures that after all the delays messages
+ * are delivered to the processes sent in a round
+ */
 public class Synchronizer {
 
+    /**
+     * timeUnit - a reference of the Round class to be used to control rounds
+     * numberOfRounds - acts as time Units for delays
+     * numProcesses - total number of processes
+     * root - reference to root process to check if it is complete
+     */
     public Round timeUnit;
     private int numberOfRounds = 15;
     private int numProcesses ;
@@ -11,18 +25,27 @@ public class Synchronizer {
         this.root = p;
     }
 
+    /**
+     * The method to run the Asynchronous Bellman Ford Algorithms
+     * @return void
+     */
     public void runBellmanFord() {
         int synchRound = 0;
         while(!this.root.isProcessCompleted())
         {
-            System.out.println("--------------------------Started synchronizer round : " + (synchRound));
+            System.out.println("---------Starting synchronizer round : " + synchRound + " ----------------------------");
             startRound(synchRound);
             synchRound++;
 
         }
         this.timeUnit.setStopAllThreads(true);
     }
-
+    /**
+     * The method helps the above method to change rounds based on synchronizer rounds
+     * Two types of rounds - RoundType.synchronizer which is the synchronizer round and RoundType.timeUnit to produce
+     * delays for given time Units where the round number is the value of the delay time unit
+     * @return void
+     */
     private void startRound(int sRound){
         int round = 0;
         Round.synchronizergGlobalRoundNumber.set(sRound);
@@ -38,7 +61,6 @@ public class Synchronizer {
                 break;
             }
         }
-        System.out.println("---------Starting synchronizer round : " + sRound + " ---------------");
         while (round <= numberOfRounds - 1) {
             try {
                 if (this.timeUnit.threadCount.get() == 0) {

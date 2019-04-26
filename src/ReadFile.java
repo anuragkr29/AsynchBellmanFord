@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class ReadFile {
     /**
-     * This class helps to read a file (inout.dat) and parse it
+     * This class helps to read a file (input.dat) and parse it
      */
     private ArrayList<String> inputValues;
     private int numberOfProcesses;
@@ -71,7 +71,7 @@ public class ReadFile {
     }
 
     /**
-     * function to initialize the and populate the array variables
+     * function populate the array variables from the input file stream
      * @param values the input string read from the file
      */
     public void init(ArrayList<String> values) {

@@ -1,7 +1,14 @@
+/**
+ * @author Anurag Kumar
+ */
+
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * This is a data structure which helps in bookkeeping to help convergecast
+ */
 class Node {
     private int UID;
     private boolean ack;
@@ -38,12 +45,7 @@ class Process implements Runnable {
     private ArrayList<Edge> neighbors;
     private ArrayList<Node> childrens;
     private boolean processCompleted = false;
-    private int acksCount = 0;
-    private int nacksCount = 0;
-
-    public int getDist() {
-        return dist;
-    }
+    private ArrayList<Integer> receiversInCurrentRound = new ArrayList<>(100);
 
     public void setDist(int dist) {
         this.dist = dist;
@@ -105,7 +107,10 @@ class Process implements Runnable {
             }
         }
     }
-
+    /**
+     * This function helps to check if the current process is done (for convergecast)
+     * @return boolean value which is true or false
+     */
     private boolean isDone() {
         for (Node n : this.childrens) {
             if (!n.isAck()) {
@@ -114,6 +119,23 @@ class Process implements Runnable {
         }
         return true;
     }
+
+    private void checkDone() throws InterruptedException {
+        if (this.isDone()) {
+            if (this.index == this.rootUID) {
+                this.processCompleted = true;
+            } else {
+                this.processCompleted = true;
+                if (this.parentUID != -10) {
+                    enqueueMessage(this.parentUID, -1, this.index, Message.Type.Ack);
+                }
+            }
+        }
+    }
+    /**
+     * This class processes the message Queue i.e. the received messages are processed once received by a process
+     * @return void
+     */
 
     public void processQueue() {
         try {
@@ -140,24 +162,13 @@ class Process implements Runnable {
                                     enqueueMessage(e.getUID(), dist, index, Message.Type.Relax);
                                     this.childrens.add(new Node(e.getUID(), false));
                                 }
-                                this.distChanged = false;
-
                             } else {
                                 enqueueMessage((int) m.getFrom_UID(), -1, this.index, Message.Type.NAck);
                             }
                             break;
                         case Ack:
                             this.setResetUID((int) m.getFrom_UID(), true);
-                            if (this.isDone()) {
-                                if (this.index == this.rootUID) {
-                                    this.processCompleted = true;
-                                } else {
-                                    this.processCompleted = true;
-                                    if (this.parentUID != -10) {
-                                        enqueueMessage(this.parentUID, -1, this.index, Message.Type.Ack);
-                                    }
-                                }
-                            }
+                            this.checkDone();
                             break;
                         case NAck:
                             if (m.getOldParentId() != null) {
@@ -167,19 +178,10 @@ class Process implements Runnable {
                             } else {
                                 this.setResetUID((int) m.getFrom_UID(), true);
                             }
-                            if (this.isDone()) {
-                                if (this.index == this.rootUID) {
-                                    this.processCompleted = true;
-                                } else {
-                                    this.processCompleted = true;
-                                    if (this.parentUID != -10) {
-                                        enqueueMessage(this.parentUID, -1, this.index, Message.Type.Ack);
-                                    }
-                                }
-                            }
+                            this.checkDone();
                             break;
                         case Dummy:
-                            System.out.println();
+                            System.out.println("Dummy");
                             break;
                     }
                 }
@@ -188,7 +190,11 @@ class Process implements Runnable {
             e.printStackTrace();
         }
     }
-
+    /**
+     * This class processes the send Queue for sending the messages to the neighbors which fires after a given time Unit
+     * delay
+     * @return void
+     */
     public void processSendQ() {
         try {
             if (!this.sendQ.isEmpty()) {
@@ -215,7 +221,6 @@ class Process implements Runnable {
         System.out.println("Starting " + Thread.currentThread().getName());
         while (true) {
             if (Round.getRound(this.index) == 100) {
-                int globalRoundNum = Round.getGlobalRoundNumber();
                 if (Round.getrType() == Round.RoundType.synchronizer) {
                     try {
                         if (this.index == this.rootUID && Round.synchronizergGlobalRoundNumber.get() == 0) {
@@ -227,16 +232,23 @@ class Process implements Runnable {
                         }
                         this.processQueue();
                         Thread.sleep(1000);
+                        if (!this.distChanged){
+                            for (Edge e : neighbors) {
+                                if(!this.receiversInCurrentRound.contains(e.getUID())) {
+                                    enqueueMessage(e.getUID(), dist, index, Message.Type.Dummy);
+                                }
+                            }
+                            this.receiversInCurrentRound.clear();
+                        }
+                        this.distChanged = false;
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    Round.update(this.index, 0);
                 } else if (Round.getrType() == Round.RoundType.timeUnit) {
                     this.processSendQ();
-                    Round.update(this.index, 0);
                 }
-
+                Round.update(this.index, 0);
             }
             if (Round.getStopAllThreads()) {
                 System.out.println("Shutting down " + Thread.currentThread().getName() + " with final distance : " + this.dist);
@@ -248,6 +260,7 @@ class Process implements Runnable {
     private void enqueueMessage(int receiverUID, int dist, int index, Message.Type type) throws InterruptedException {
 
         Random rand = new Random();
+        this.receiversInCurrentRound.add(receiverUID);
         int randRoundNum = rand.nextInt(14) + 1;
         System.out.println("Putting in sendQ for thread : " + receiverUID + " random num : " + randRoundNum + " from : " + this.index + " type :" + type);
         Message<Integer> toSend = new Message<>(dist, index, receiverUID, randRoundNum, type);
@@ -259,6 +272,7 @@ class Process implements Runnable {
     private void enqueueMessage(int receiverUID, int dist, int index, Message.Type type, int oldParent) throws InterruptedException {
 
         Random rand = new Random();
+        this.receiversInCurrentRound.add(receiverUID);
         int randRoundNum = rand.nextInt(14) + 1;
         System.out.println("Putting in sendQ for oldparent: " + receiverUID + " random num : " + randRoundNum + " from : " + this.index + " type :" + type);
         Message<Integer> toSend = new Message<>(dist, index, receiverUID, randRoundNum, type, oldParent);
