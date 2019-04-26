@@ -24,6 +24,11 @@ public class Main {
         System.out.println("--------- Input File read ----------");
         System.out.println(" Number of Processes : " + numberOfProcesses);
         System.out.println(" Root UID : " + rootUID);
+        System.out.println(" --Connectivity Matrix --");
+        for (ArrayList<Integer> connection : connectionMatrix){
+            System.out.println(connection.toString().replace(", " , "   ")
+                    .replace("[" , "").replace("]", ""));
+        }
         System.out.println("------------------------------------");
         ExecutorService threadPool = Executors.newFixedThreadPool(numberOfProcesses);
         Process processMap[] = new Process[numberOfProcesses];

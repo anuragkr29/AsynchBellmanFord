@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class ReadFile {
     /**
-     * This class helps to read a file (input.dat) and parse it
+     * This class helps to read a file (Connectivity.txt) and parse it
      */
     private ArrayList<String> inputValues;
     private int numberOfProcesses;
