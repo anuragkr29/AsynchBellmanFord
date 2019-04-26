@@ -7,9 +7,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
+/**
+ * This class manages the next round and helps the Syncronizer to change rounds
+ * also helps to generate delays based on time units
+ */
 public class Round {
     /**
-     * This class manages the next round and helps the Syncronizer to change rounds
+     * round - which helps process threads to start a round based on their index
+     * globalRoundNumber - current round number which is available to all processes to decide when to send the message
+     * threadCount - total number of threads to be run - this helps to terminate a round which changes based on a process completion
+     * synchronizergGlobalRoundNumber - the synchronizer global round number
+     * stopAllThreads - a boolean value used to stop all the running threads when the process is complete
+     * rType - type of round i.e. a synchronizer round or the timeUnit round
      */
     public static AtomicIntegerArray round ;
     public static AtomicInteger globalRoundNumber = new AtomicInteger(0);
@@ -22,22 +31,6 @@ public class Round {
     public static RoundType rType;
     public Round(int number) {
         round = new AtomicIntegerArray(number);
-    }
-
-    public static RoundType getrType() {
-        return rType;
-    }
-
-    public static void setrType(RoundType rType) {
-        Round.rType = rType;
-    }
-
-    public int getSynchronizergGlobalRoundNumber() {
-        return Round.synchronizergGlobalRoundNumber.get();
-    }
-
-    public void setSynchronizergGlobalRoundNumber(int synchronizergGlobalRoundNumber) {
-        Round.synchronizergGlobalRoundNumber.set(synchronizergGlobalRoundNumber);
     }
 
     /**
@@ -58,15 +51,11 @@ public class Round {
      * updates the threadcount i.e. the number of threads in the graph to keep a count
      * @param index index which a thread looks to start the its next round - each index is associated with a thread
      * @param updatedValue the value to be updated after the thread is done with the current round
-     * @return
+     * @return the round number before the update
      */
     public static synchronized int update(int index, int updatedValue) {
         threadCount.decrementAndGet();
         return round.getAndSet(index,updatedValue);
-    }
-
-    public int getVal(int index){
-        return round.get(index);
     }
 
     public int getThreadCount(){
@@ -81,6 +70,13 @@ public class Round {
         return globalRoundNumber.get();
     }
 
+    public static RoundType getrType() {
+        return rType;
+    }
+
+    public static void setrType(RoundType rType) {
+        Round.rType = rType;
+    }
     /**
      * function to stop all threads
      * @param state boolean value : true sets the stopAllthreads
