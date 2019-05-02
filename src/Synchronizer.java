@@ -3,8 +3,8 @@
  */
 
 /**
- * This class acts as a synchronizer on top of the asynchronous network and ensures that after all the delays messages
- * are delivered to the processes sent in a round
+ * This class acts as a synchronizer on top of the asynchronous network and ensures that after all the delays, messages
+ * are finally delivered to all the processes sent in a synchronizer's round
  */
 public class Synchronizer {
 
